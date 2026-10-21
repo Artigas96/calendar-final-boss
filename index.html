@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Calendario de cuenta atrás hasta el 3 de diciembre. Tacha los días que faltan.">
+  <meta name="theme-color" content="#fdf5f4">
+  <title>Cuenta atrás · Hasta el 3 de diciembre</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%85%3C/text%3E%3C/svg%3E">
+  <style>
+    :root {
+      --surface: #fffcfc;
+      --ink: #2e2225;
+      --muted: #7f6a6e;
+      --line: #ecdcdd;
+      --accent: #8b1e31;
+      --accent-2: #b23b48;
+      --accent-soft: #f8e2e5;
+      --done: #b09a9d;
+      --shadow: 0 18px 40px -26px rgba(90, 20, 35, 0.5);
+      --radius: 22px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: ui-rounded, "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+      background:
+        radial-gradient(60% 50% at 12% 0%, #f7dfe2 0%, rgba(247, 223, 226, 0) 60%),
+        radial-gradient(55% 50% at 88% 6%, #f2e2dd 0%, rgba(242, 226, 221, 0) 58%),
+        linear-gradient(180deg, #fffaf8 0%, #fdf5f4 55%, #f7eaea 100%);
+      background-attachment: fixed;
+    }
+
+    body.is-done {
+      --accent: #2f7d5c;
+      --accent-2: #5c9a7b;
+      --accent-soft: #e2f3ea;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .app {
+      width: min(100% - 32px, 760px);
+      margin: 28px auto 40px;
+    }
+
+    /* ---------- Cabecera y cuenta atrás ---------- */
+
+    .header {
+      position: relative;
+      overflow: hidden;
+      padding: 26px 24px 22px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      background: linear-gradient(155deg, #fffdfc 0%, #fdf4f3 55%, #f9eded 100%);
+      box-shadow: var(--shadow);
+      animation: rise 0.4s ease-out both;
+    }
+
+    .header::after {
+      content: "";
+      position: absolute;
+      top: -70px;
+      right: -50px;
+      width: 190px;
+      height: 190px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, rgba(139, 30, 49, 0.14), rgba(139, 30, 49, 0) 70%);
+      pointer-events: none;
+    }
+
+    .kicker {
+      margin: 0 0 2px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .count {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+    }
+
+    .count__number {
+      font-size: clamp(54px, 15vw, 80px);
+      font-weight: 800;
+      line-height: 0.9;
+      letter-spacing: -0.045em;
+      font-variant-numeric: tabular-nums;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+    }
+
+    .count__unit {
+      padding-bottom: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .count__sub {
+      margin: 8px 0 18px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    /* ---------- Barra de progreso ---------- */
+
+    .progress {
+      height: 10px;
+      border-radius: 999px;
+      background: #f2e4e5;
+      overflow: hidden;
+    }
+
+    .progress__fill {
+      display: block;
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width 0.45s ease;
+    }
+
+    .progress__meta {
+      margin: 8px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .mute {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      font-size: 17px;
+      line-height: 1;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    }
+
+    .mute:hover {
+      box-shadow: 0 6px 14px -8px rgba(90, 20, 35, 0.4);
+    }
+
+    .mute:active {
+      transform: scale(0.94);
+    }
+
+    .mute[aria-pressed="true"] {
+      opacity: 0.55;
+    }
+
+    /* ---------- Aviso de almacenamiento ---------- */
+
+    .warning {
+      margin: 14px 0 0;
+      padding: 10px 14px;
+      border: 1px solid #f3d9c2;
+      border-radius: 12px;
+      background: #fff4e8;
+      color: #a4553b;
+      font-size: 12.5px;
+    }
+
+    /* ---------- Calendario ---------- */
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(224px, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .month {
+      padding: 16px 14px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: 18px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      animation: rise 0.45s ease-out both;
+    }
+
+    .month:nth-child(2) {
+      animation-delay: 0.05s;
+    }
+
+    .month:nth-child(3) {
+      animation-delay: 0.1s;
+    }
+
+    .month__title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 12px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: capitalize;
+    }
+
+    .month__title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--line);
+    }
+
+    .weekdays,
+    .days {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+
+    .weekdays {
+      gap: 5px;
+      margin-bottom: 6px;
+    }
+
+    .weekdays__item {
+      text-align: center;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .days {
+      gap: 5px;
+    }
+
+    .day {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-width: 0;
+      aspect-ratio: 1;
+      padding: 0;
+      border: 1px solid transparent;
+      border-radius: 11px;
+      background: #f8f2f2;
+      color: var(--ink);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .day--empty {
+      background: transparent;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .day.is-weekend {
+      background: #f3e7e8;
+    }
+
+    .day.is-crossed {
+      background: #f6eded;
+      color: var(--done);
+    }
+
+    .day.is-early {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .day.is-today {
+      border-color: var(--accent);
+      background: #fff;
+      color: var(--accent);
+      font-weight: 800;
+      box-shadow: 0 0 0 3px rgba(139, 30, 49, 0.14);
+    }
+
+    .day.is-locked {
+      cursor: default;
+    }
+
+    .day:active:not(.is-locked) {
+      transform: scale(0.94);
+    }
+
+    @media (hover: hover) {
+      .day:not(.is-locked):hover {
+        transform: translateY(-2px);
+        border-color: var(--accent);
+        background: #fff;
+      }
+    }
+
+    .day:focus-visible {
+      outline: 2px solid var(--accent-2);
+      outline-offset: 2px;
+    }
+
+    /* Tachado */
+    .day::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 24%;
+      right: 24%;
+      height: 2px;
+      border-radius: 2px;
+      background: currentColor;
+      opacity: 0;
+      transform: rotate(-6deg) scaleX(0);
+      transform-origin: left center;
+      transition: transform 0.25s ease, opacity 0.2s ease;
+    }
+
+    .day.is-crossed::after {
+      opacity: 0.55;
+      transform: rotate(-6deg) scaleX(1);
+    }
+
+    .day.is-just-crossed::after {
+      animation: strike-in 0.3s ease-out both;
+    }
+
+    /* ---------- Pie ---------- */
+
+    .hint {
+      margin: 16px 4px 0;
+      font-size: 12.5px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .foot {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 14px;
+      padding: 0 4px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .link-button {
+      padding: 4px 0;
+      border: 0;
+      background: none;
+      color: var(--muted);
+      font: inherit;
+      font-size: 12px;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      cursor: pointer;
+    }
+
+    .link-button:hover {
+      color: var(--accent);
+    }
+
+    .link-button:focus-visible {
+      outline: 2px solid var(--accent-2);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    @media (max-width: 480px) {
+      .month {
+        padding: 14px 10px 12px;
+      }
+
+      .days,
+      .weekdays {
+        gap: 4px;
+      }
+
+      .day {
+        border-radius: 10px;
+        font-size: 13.5px;
+      }
+    }
+
+    /* ---------- Toast motivacional ---------- */
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: min(420px, calc(100% - 32px));
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: #2a1d20;
+      color: #fff;
+      box-shadow: 0 20px 40px -18px rgba(40, 10, 18, 0.55);
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, 130%);
+      transition: transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2), opacity 0.2s ease;
+      cursor: pointer;
+    }
+
+    .toast.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate(-50%, 0);
+    }
+
+    .toast.is-milestone {
+      background: linear-gradient(135deg, #6f1526, #a8324a);
+    }
+
+    .toast__icon {
+      flex: none;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .toast__text {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    /* ---------- Animaciones ---------- */
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    @keyframes strike-in {
+      from {
+        opacity: 0;
+        transform: rotate(-6deg) scaleX(0);
+      }
+      to {
+        opacity: 0.55;
+        transform: rotate(-6deg) scaleX(1);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="header" id="header">
+      <button class="mute" id="mute" type="button" aria-label="Silenciar sonido" aria-pressed="false" title="Silenciar sonido">🔔</button>
+      <p class="kicker" id="kicker">Cuenta atrás</p>
+      <div class="count">
+        <span class="count__number" id="count-number">—</span>
+        <span class="count__unit" id="count-unit">días</span>
+      </div>
+      <p class="count__sub" id="count-sub">cargando…</p>
+      <div class="progress" id="progress" role="progressbar" aria-label="Días tachados" aria-valuemin="0" aria-valuemax="44" aria-valuenow="0">
+        <span class="progress__fill" id="progress-fill"></span>
+      </div>
+      <p class="progress__meta" id="progress-meta">0 de 44 días tachados</p>
+    </header>
+
+    <p class="warning" id="storage-warning" hidden>
+      ⚠️ Este navegador no permite guardar datos, así que las marcas se perderán al cerrar.
+    </p>
+
+    <div class="calendar" id="calendar" aria-label="Calendario del servicio"></div>
+
+    <p class="hint">Toca un día futuro para tacharlo por adelantado. Los días pasados se tachan solos.</p>
+
+    <footer class="foot">
+      <span>Datos guardados solo en este navegador.</span>
+      <button class="link-button" id="reset" type="button">Borrar mis marcas</button>
+    </footer>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true">
+    <span class="toast__icon" id="toast-icon" aria-hidden="true">✨</span>
+    <p class="toast__text" id="toast-text"></p>
+  </div>
+
+  <noscript>
+    <p style="max-width: 640px; margin: 24px auto; padding: 16px; font-family: sans-serif; text-align: center;">
+      Para usar el calendario necesitas activar JavaScript en el navegador.
+    </p>
+  </noscript>
+
+  <!-- Frases editables. Es JSON: cuidado con las comillas y sin comas finales. -->
+  <script type="application/json" id="frases">
+  {
+    "general": [
+      "Un día menos. Y ya no vuelve.",
+      "Tachado. Sin pedir permiso.",
+      "Otro que cae.",
+      "Esto ya no hay quien lo pare.",
+      "Cada cruz es un punto para ti.",
+      "Hoy también has ganado.",
+      "El calendario va perdiendo.",
+      "Un pasito más cerca de casa.",
+      "Se nota que le estás cogiendo el truco.",
+      "Tacharlo es lo mejor del día.",
+      "Mira cómo desaparecen.",
+      "La cuenta atrás no miente.",
+      "Un día menos para el 3 de diciembre.",
+      "Esto se llama constancia.",
+      "Bien. Sin dramas y hacia delante.",
+      "Cada día tachado es tuyo.",
+      "Ya llevas unos cuantos. Se nota.",
+      "Pequeño gesto, gran recuento.",
+      "Así, sin prisa pero sin pausa.",
+      "El hospital no sabe con quién está tratando.",
+      "Ya casi hueles el último día.",
+      "Un día menos de bata.",
+      "Sigue así y esto se acaba solo.",
+      "Hecho. Siguiente.",
+      "Te lo estás quitando de encima."
+    ],
+    "hitos": {
+      "5": "Cinco días. La cosa ya va en serio.",
+      "10": "Diez. Esto empieza a parecer una racha.",
+      "22": "Mitad del camino. Ni tan mal, ¿no?",
+      "32": "Treinta y dos. Ya se ve el final.",
+      "40": "Cuarenta. Quedan cuatro. Cuatro."
+    },
+    "ultimoDia": [
+      "Último día. Lo has conseguido.",
+      "Fin. Te lo has ganado entero.",
+      "Se acabó. Ahora a celebrarlo."
+    ],
+    "deshecho": [
+      "Deshecho. Sin drama.",
+      "Marcha atrás, sin problema.",
+      "Quitado. Aquí no ha pasado nada."
+    ],
+    "nuevoDia": [
+      "Otro día tachado solo. Sigue así.",
+      "El calendario avanza por su cuenta.",
+      "Nuevo día, nueva cruz. Sin que hagas nada."
+    ]
+  }
+  </script>
+
+  <script>
+    (function () {
+      'use strict';
+
+      /* ==========================================================
+         CONFIGURACIÓN
+         Cambia aquí las fechas del servicio.
+         ========================================================== */
+
+      const START_ISO = '2026-10-21';
+      const END_ISO = '2026-12-03';
+      const STORAGE_KEY = 'finalboss.calendar.v1';
+      const TOAST_MS = 4500;
+
+      const MONTHS = [
+        'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+      ];
+      const WEEKDAY_NAMES = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+      const WEEKDAY_SHORT = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+
+      /* ==========================================================
+         Utilidades de fecha (todo en hora local, sin sustos de UTC)
+         ========================================================== */
+
+      function parseISO(iso) {
+        const parts = iso.split('-').map(Number);
+        return new Date(parts[0], parts[1] - 1, parts[2]);
+      }
+
+      function toISO(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+      }
+
+      function startOfDay(date) {
+        return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      }
+
+      function addDays(date, amount) {
+        const copy = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        copy.setDate(copy.getDate() + amount);
+        return copy;
+      }
+
+      function diffDays(from, to) {
+        return Math.round((startOfDay(to).getTime() - startOfDay(from).getTime()) / 86400000);
+      }
+
+      function capitalize(text) {
+        return text.charAt(0).toUpperCase() + text.slice(1);
+      }
+
+      function formatLong(date) {
+        return date.getDate() + ' de ' + MONTHS[date.getMonth()];
+      }
+
+      function formatFull(date) {
+        return capitalize(WEEKDAY_NAMES[date.getDay()]) + ' ' + date.getDate() +
+          ' de ' + MONTHS[date.getMonth()] + ' de ' + date.getFullYear();
+      }
+
+      const START = parseISO(START_ISO);
+      const END = parseISO(END_ISO);
+      const ALL_DAYS = [];
+
+      for (let day = new Date(START); day <= END && ALL_DAYS.length < 400; day = addDays(day, 1)) {
+        ALL_DAYS.push(day);
+      }
+
+      const TOTAL = ALL_DAYS.length;
+
+      if (!TOTAL) {
+        document.querySelector('.app').textContent = 'Las fechas de configuración no son válidas.';
+        return;
+      }
+
+      const VALID_ISO = new Set(ALL_DAYS.map(toISO));
+
+      /* ==========================================================
+         Elementos de la página
+         ========================================================== */
+
+      const els = {
+        header: document.getElementById('header'),
+        kicker: document.getElementById('kicker'),
+        number: document.getElementById('count-number'),
+        unit: document.getElementById('count-unit'),
+        sub: document.getElementById('count-sub'),
+        progress: document.getElementById('progress'),
+        fill: document.getElementById('progress-fill'),
+        meta: document.getElementById('progress-meta'),
+        calendar: document.getElementById('calendar'),
+        mute: document.getElementById('mute'),
+        reset: document.getElementById('reset'),
+        warning: document.getElementById('storage-warning'),
+        toast: document.getElementById('toast'),
+        toastIcon: document.getElementById('toast-icon'),
+        toastText: document.getElementById('toast-text')
+      };
+
+      function create(tag, className) {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        return node;
+      }
+
+      /* ==========================================================
+         Estado guardado (localStorage)
+         ========================================================== */
+
+      const state = { crossed: new Set(), sonido: true };
+      let storageOk = true;
+      let TODAY = startOfDay(new Date());
+
+      function loadState() {
+        let raw = null;
+        try {
+          raw = window.localStorage.getItem(STORAGE_KEY);
+        } catch (error) {
+          storageOk = false;
+          console.warn('Este navegador no permite guardar datos.', error);
+          return;
+        }
+        if (!raw) return;
+        try {
+          const data = JSON.parse(raw);
+          if (data && Array.isArray(data.crossed)) {
+            state.crossed = new Set(
+              data.crossed.filter((iso) => typeof iso === 'string' && VALID_ISO.has(iso))
+            );
+          }
+          if (data && data.sonido === false) state.sonido = false;
+        } catch (error) {
+          console.warn('Los datos guardados estaban corruptos y se han ignorado.', error);
+        }
+      }
+
+      function saveState() {
+        try {
+          window.localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            version: 1,
+            crossed: Array.from(state.crossed),
+            sonido: state.sonido
+          }));
+        } catch (error) {
+          storageOk = false;
+          syncStorageWarning();
+          console.warn('No se pudo guardar el estado.', error);
+        }
+      }
+
+      function syncStorageWarning() {
+        els.warning.hidden = storageOk;
+      }
+
+      /* ==========================================================
+         Frases motivacionales (bloque JSON del final del HTML)
+         ========================================================== */
+
+      const DEFAULT_PHRASES = {
+        general: [
+          'Un día menos. Y ya no vuelve.',
+          'Tachado. Sin pedir permiso.',
+          'Otro que cae.'
+        ],
+        hitos: {
+          '5': 'Cinco días. La cosa ya va en serio.',
+          '10': 'Diez. Esto empieza a parecer una racha.',
+          '22': 'Mitad del camino. Ni tan mal, ¿no?',
+          '32': 'Treinta y dos. Ya se ve el final.',
+          '40': 'Cuarenta. Quedan cuatro. Cuatro.'
+        },
+        ultimoDia: ['Último día. Lo has conseguido.'],
+        deshecho: ['Deshecho. Sin drama.'],
+        nuevoDia: ['Otro día tachado solo. Sigue así.']
+      };
+
+      function asPhraseList(value, fallback) {
+        if (Array.isArray(value)) {
+          const list = value
+            .filter((item) => typeof item === 'string' && item.trim())
+            .map((item) => item.trim());
+          if (list.length) return list;
+        }
+        return fallback.slice();
+      }
+
+      function loadPhrases() {
+        const node = document.getElementById('frases');
+        let raw = null;
+        try {
+          raw = JSON.parse(node ? node.textContent : 'null');
+        } catch (error) {
+          console.warn('El bloque de frases no es un JSON válido. Uso las frases de reserva.', error);
+        }
+        if (!raw || typeof raw !== 'object') raw = {};
+
+        const parsedHitos = {};
+        if (raw.hitos && typeof raw.hitos === 'object') {
+          Object.keys(raw.hitos).forEach((key) => {
+            const phrase = raw.hitos[key];
+            if (/^\d+$/.test(key) && typeof phrase === 'string' && phrase.trim()) {
+              parsedHitos[key] = phrase.trim();
+            }
+          });
+        }
+
+        return {
+          general: asPhraseList(raw.general, DEFAULT_PHRASES.general),
+          ultimoDia: asPhraseList(raw.ultimoDia, DEFAULT_PHRASES.ultimoDia),
+          deshecho: asPhraseList(raw.deshecho, DEFAULT_PHRASES.deshecho),
+          nuevoDia: asPhraseList(raw.nuevoDia, DEFAULT_PHRASES.nuevoDia),
+          hitos: Object.assign({}, DEFAULT_PHRASES.hitos, parsedHitos)
+        };
+      }
+
+      const PHRASES = loadPhrases();
+
+      // Bolsas para no repetir frase dos veces seguidas.
+      const bags = new Map();
+      const lastPicked = new Map();
+
+      function shuffle(items) {
+        for (let i = items.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const temp = items[i];
+          items[i] = items[j];
+          items[j] = temp;
+        }
+        return items;
+      }
+
+      function pickPhrase(list) {
+        if (!Array.isArray(list) || !list.length) return '';
+        if (list.length === 1) return list[0];
+
+        let bag = bags.get(list);
+        if (!bag || !bag.length) {
+          bag = shuffle(list.slice());
+          bags.set(list, bag);
+        }
+
+        let phrase = bag.shift();
+        if (phrase === lastPicked.get(list) && bag.length) {
+          bag.push(phrase);
+          phrase = bag.shift();
+        }
+        lastPicked.set(list, phrase);
+        return phrase;
+      }
+
+      /* ==========================================================
+         Sonido sintetizado (Web Audio API, sin archivos externos)
+         ========================================================== */
+
+      let audioCtx = null;
+
+      function getAudio() {
+        if (!state.sonido) return null;
+        const AudioCtor = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtor) return null;
+        try {
+          if (!audioCtx) audioCtx = new AudioCtor();
+          if (audioCtx.state === 'suspended') {
+            audioCtx.resume().catch(function () {});
+          }
+          return audioCtx.state === 'closed' ? null : audioCtx;
+        } catch (error) {
+          console.warn('El audio no está disponible en este navegador.', error);
+          return null;
+        }
+      }
+
+      function note(ctx, frequency, at, duration, volume, type) {
+        const oscillator = ctx.createOscillator();
+        const gain = ctx.createGain();
+        oscillator.type = type || 'sine';
+        oscillator.frequency.setValueAtTime(frequency, at);
+        gain.gain.setValueAtTime(0.0001, at);
+        gain.gain.exponentialRampToValueAtTime(volume, at + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, at + duration);
+        oscillator.connect(gain).connect(ctx.destination);
+        oscillator.start(at);
+        oscillator.stop(at + duration + 0.03);
+      }
+
+      function playTick() {
+        const ctx = getAudio();
+        if (!ctx) return;
+        const at = ctx.currentTime + 0.01;
+        note(ctx, 523.25, at, 0.28, 0.09, 'triangle');
+        note(ctx, 783.99, at + 0.07, 0.4, 0.07, 'sine');
+      }
+
+      function playMilestone() {
+        const ctx = getAudio();
+        if (!ctx) return;
+        const at = ctx.currentTime + 0.01;
+        [523.25, 659.25, 783.99, 1046.5].forEach(function (frequency, index) {
+          note(ctx, frequency, at + index * 0.085, 0.5, 0.075, 'triangle');
+        });
+      }
+
+      function playFinish() {
+        const ctx = getAudio();
+        if (!ctx) return;
+        const at = ctx.currentTime + 0.01;
+        [523.25, 659.25, 783.99, 1046.5].forEach(function (frequency, index) {
+          note(ctx, frequency, at + index * 0.12, 0.7, 0.08, 'sine');
+        });
+        note(ctx, 1318.51, at + 0.52, 0.9, 0.06, 'sine');
+      }
+
+      // Los navegadores bloquean el audio hasta que hay un gesto del usuario.
+      document.addEventListener('pointerdown', function () {
+        if (state.sonido) getAudio();
+      }, { once: true, passive: true });
+      document.addEventListener('keydown', function () {
+        if (state.sonido) getAudio();
+      }, { once: true });
+
+      /* ==========================================================
+         Toast motivacional
+         ========================================================== */
+
+      let toastTimer = null;
+
+      function showToast(text, options) {
+        if (!text) return;
+        const opts = options || {};
+        els.toastText.textContent = text;
+        els.toastIcon.textContent = opts.icon || '✨';
+        els.toast.classList.toggle('is-milestone', Boolean(opts.milestone));
+        els.toast.classList.add('is-visible');
+        window.clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(hideToast, TOAST_MS);
+      }
+
+      function hideToast() {
+        window.clearTimeout(toastTimer);
+        toastTimer = null;
+        els.toast.classList.remove('is-visible');
+      }
+
+      els.toast.addEventListener('click', hideToast);
+
+      /* ==========================================================
+         Lógica de días
+         ========================================================== */
+
+      function getStatus() {
+        const started = TODAY.getTime() >= START.getTime();
+        const ended = TODAY.getTime() > END.getTime();
+        let remaining = 0;
+
+        if (!ended) {
+          remaining = started ? diffDays(TODAY, END) : diffDays(START, END);
+        }
+
+        return { started: started, ended: ended, remaining: remaining };
+      }
+
+      function isCrossed(day, status) {
+        if (status.started && day.getTime() < TODAY.getTime()) return true;
+        if (status.started && day.getTime() === TODAY.getTime() && !status.ended) return true;
+        return state.crossed.has(toISO(day));
+      }
+
+      function countCrossed(status) {
+        let total = 0;
+        ALL_DAYS.forEach(function (day) {
+          if (isCrossed(day, status)) total += 1;
+        });
+        return total;
+      }
+
+      /* ==========================================================
+         Pintado
+         ========================================================== */
+
+      let justCrossed = null;
+
+      function render() {
+        const status = getStatus();
+        const crossedCount = countCrossed(status);
+        renderHeader(status, crossedCount);
+        renderCalendar(status);
+        updateMuteButton();
+        document.body.classList.toggle('is-done', status.ended || status.remaining === 0 || crossedCount === TOTAL);
+        justCrossed = null;
+      }
+
+      function updateMuteButton() {
+        const label = state.sonido ? 'Silenciar sonido' : 'Activar sonido';
+        els.mute.textContent = state.sonido ? '🔔' : '🔇';
+        els.mute.setAttribute('aria-pressed', state.sonido ? 'false' : 'true');
+        els.mute.setAttribute('aria-label', label);
+        els.mute.title = label;
+      }
+
+      function renderHeader(status, crossedCount) {
+        let kicker;
+        let number;
+        let unit;
+        let sub;
+        let title;
+
+        if (status.ended) {
+          kicker = 'Servicio completado';
+          number = 'Fin';
+          unit = '';
+          sub = TOTAL + ' de ' + TOTAL + ' días. Lo has conseguido.';
+          title = 'Servicio completado · Hasta el ' + formatLong(END);
+        } else if (!status.started) {
+          kicker = 'El servicio empieza pronto';
+          number = String(status.remaining);
+          unit = status.remaining === 1 ? 'día' : 'días';
+          sub = 'del ' + formatLong(START) + ' al ' + formatLong(END);
+          title = 'Empieza el ' + formatLong(START) + ' · ' + TOTAL + ' días de servicio';
+        } else if (status.remaining === 0) {
+          kicker = 'Último día';
+          number = '¡Hoy!';
+          unit = '';
+          sub = formatLong(END) + '. Lo has conseguido.';
+          title = 'Último día · Hasta el ' + formatLong(END);
+        } else if (crossedCount === TOTAL) {
+          kicker = 'Calendario completo';
+          number = 'Fin';
+          unit = '';
+          sub = 'Todos los días tachados. Ahora toca esperar al ' + formatLong(END) + '.';
+          title = 'Calendario completo · Hasta el ' + formatLong(END);
+        } else {
+          kicker = 'Cuenta atrás';
+          number = String(status.remaining);
+          unit = status.remaining === 1 ? 'día' : 'días';
+          sub = status.remaining === 1
+            ? 'para el último día, el ' + formatLong(END)
+            : 'para el ' + formatLong(END);
+          title = 'Quedan ' + status.remaining + (status.remaining === 1 ? ' día' : ' días') +
+            ' · Hasta el ' + formatLong(END);
+        }
+
+        els.kicker.textContent = kicker;
+        els.number.textContent = number;
+        els.unit.textContent = unit;
+        els.unit.hidden = !unit;
+        els.sub.textContent = sub;
+
+        const percentage = TOTAL ? (crossedCount / TOTAL) * 100 : 0;
+        els.fill.style.width = percentage.toFixed(1) + '%';
+        els.progress.setAttribute('aria-valuenow', String(crossedCount));
+        els.progress.setAttribute('aria-valuemax', String(TOTAL));
+        els.meta.textContent = crossedCount + ' de ' + TOTAL + ' ' +
+          (TOTAL === 1 ? 'día tachado' : 'días tachados');
+        document.title = title;
+      }
+
+      function renderCalendar(status) {
+        const byMonth = new Map();
+
+        ALL_DAYS.forEach(function (day) {
+          const key = day.getFullYear() + '-' + day.getMonth();
+          if (!byMonth.has(key)) {
+            byMonth.set(key, { year: day.getFullYear(), month: day.getMonth(), days: [] });
+          }
+          byMonth.get(key).days.push(day);
+        });
+
+        els.calendar.replaceChildren();
+
+        byMonth.forEach(function (group) {
+          const section = create('section', 'month');
+
+          const title = create('h2', 'month__title');
+          title.textContent = MONTHS[group.month];
+          section.appendChild(title);
+
+          const weekdays = create('div', 'weekdays');
+          weekdays.setAttribute('aria-hidden', 'true');
+          WEEKDAY_SHORT.forEach(function (label) {
+            const item = create('span', 'weekdays__item');
+            item.textContent = label;
+            weekdays.appendChild(item);
+          });
+          section.appendChild(weekdays);
+
+          const grid = create('div', 'days');
+          grid.setAttribute('role', 'group');
+          grid.setAttribute('aria-label', capitalize(MONTHS[group.month]) + ' de ' + group.year);
+
+          const offset = (group.days[0].getDay() + 6) % 7;
+          for (let i = 0; i < offset; i += 1) {
+            grid.appendChild(create('span', 'day day--empty'));
+          }
+
+          group.days.forEach(function (day) {
+            grid.appendChild(buildDay(day, status));
+          });
+
+          section.appendChild(grid);
+          els.calendar.appendChild(section);
+        });
+      }
+
+      function buildDay(day, status) {
+        const iso = toISO(day);
+        const crossed = isCrossed(day, status);
+        const isToday = status.started && !status.ended && day.getTime() === TODAY.getTime();
+        const locked = status.started && day.getTime() <= TODAY.getTime();
+        const early = crossed && !locked;
+
+        const button = create('button', 'day');
+        button.type = 'button';
+        button.dataset.iso = iso;
+        button.textContent = String(day.getDate());
+        button.classList.toggle('is-crossed', crossed);
+        button.classList.toggle('is-today', isToday);
+        button.classList.toggle('is-locked', locked);
+        button.classList.toggle('is-early', early);
+        button.classList.toggle('is-weekend', day.getDay() === 0 || day.getDay() === 6);
+        if (iso === justCrossed) button.classList.add('is-just-crossed');
+
+        button.setAttribute('aria-pressed', crossed ? 'true' : 'false');
+        if (isToday) button.setAttribute('aria-current', 'date');
+        if (locked) button.setAttribute('aria-disabled', 'true');
+
+        let label = formatFull(day) + '. ' + (crossed ? 'Tachado' : 'Sin tachar');
+        if (isToday) label += '. Hoy';
+        if (!locked) {
+          label += crossed ? '. Pulsa para quitar la marca' : '. Pulsa para tacharlo';
+        }
+        button.setAttribute('aria-label', label);
+
+        button.addEventListener('click', function () {
+          handleDayClick(day);
+        });
+
+        return button;
+      }
+
+      /* ==========================================================
+         Interacciones
+         ========================================================== */
+
+      function handleDayClick(day) {
+        const status = getStatus();
+
+        if (status.started && day.getTime() <= TODAY.getTime()) {
+          showToast('Ese día ya está tachado.', { icon: '✅' });
+          return;
+        }
+
+        const iso = toISO(day);
+
+        if (state.crossed.has(iso)) {
+          state.crossed.delete(iso);
+          saveState();
+          render();
+          showToast(pickPhrase(PHRASES.deshecho), { icon: '↩️' });
+          return;
+        }
+
+        state.crossed.add(iso);
+        saveState();
+        justCrossed = iso;
+        render();
+
+        const crossedCount = countCrossed(getStatus());
+
+        if (crossedCount >= TOTAL) {
+          playFinish();
+          showToast(pickPhrase(PHRASES.ultimoDia), { icon: '🎉', milestone: true });
+          return;
+        }
+
+        const hito = PHRASES.hitos[String(crossedCount)];
+        if (hito) {
+          playMilestone();
+          showToast(hito, { icon: '⭐', milestone: true });
+          return;
+        }
+
+        playTick();
+        showToast(pickPhrase(PHRASES.general), { icon: '✨' });
+      }
+
+      els.mute.addEventListener('click', function () {
+        state.sonido = !state.sonido;
+        saveState();
+        updateMuteButton();
+        if (state.sonido) {
+          getAudio();
+          playTick();
+        }
+      });
+
+      els.reset.addEventListener('click', function () {
+        if (!state.crossed.size) {
+          showToast('No hay marcas que borrar.', { icon: '🧹' });
+          return;
+        }
+
+        const confirmed = window.confirm(
+          '¿Borrar las marcas que has puesto a mano? Los días ya pasados seguirán tachados.'
+        );
+        if (!confirmed) return;
+
+        state.crossed.clear();
+        saveState();
+        render();
+        showToast('Marcas borradas. De cero otra vez.', { icon: '🧹' });
+      });
+
+      /* ==========================================================
+         Cambio de día (medianoche) sin recargar
+         ========================================================== */
+
+      function checkRollover() {
+        const now = startOfDay(new Date());
+        if (toISO(now) === toISO(TODAY)) return;
+
+        TODAY = now;
+        render();
+
+        const status = getStatus();
+        if (status.started && !status.ended) {
+          showToast(pickPhrase(PHRASES.nuevoDia), { icon: '🌅' });
+        }
+      }
+
+      window.setInterval(checkRollover, 30000);
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) checkRollover();
+      });
+      window.addEventListener('focus', checkRollover);
+
+      /* ==========================================================
+         Arranque
+         ========================================================== */
+
+      loadState();
+      syncStorageWarning();
+      render();
+    })();
+  </script>
+</body>
+</html>
