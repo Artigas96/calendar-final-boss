@@ -130,6 +130,7 @@ En `localStorage`, bajo la clave `finalboss.calendar.v1`:
 - Fechas tratadas como locales a medianoche y claves `YYYY-MM-DD`, para evitar desfases de un día por UTC.
 - Los días se generan a partir de las dos constantes de fecha, con un tope de seguridad de 400 días.
 - El estado se escribe en cada cambio, no al cerrar la pestaña.
+- Tachar un día actualiza solo esa celda y la cabecera: el calendario no se reconstruye ni parpadea.
 - Si el día cambia con la pestaña abierta, se detecta por intervalo, `visibilitychange` y `focus`.
 
 ## Comprobado

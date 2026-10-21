@@ -974,16 +974,22 @@
          Pintado
          ========================================================== */
 
-      let justCrossed = null;
-
       function render() {
         const status = getStatus();
-        const crossedCount = countCrossed(status);
-        renderHeader(status, crossedCount);
+        updateHeader(status);
         renderCalendar(status);
         updateMuteButton();
-        document.body.classList.toggle('is-done', status.ended || status.remaining === 0 || crossedCount === TOTAL);
-        justCrossed = null;
+      }
+
+      function updateHeader(status) {
+        const current = status || getStatus();
+        const crossedCount = countCrossed(current);
+        renderHeader(current, crossedCount);
+        document.body.classList.toggle(
+          'is-done',
+          current.ended || current.remaining === 0 || crossedCount === TOTAL
+        );
+        return crossedCount;
       }
 
       function updateMuteButton() {
@@ -1051,6 +1057,8 @@
         document.title = title;
       }
 
+      const dayButtons = new Map();
+
       function renderCalendar(status) {
         const byMonth = new Map();
 
@@ -1063,6 +1071,7 @@
         });
 
         els.calendar.replaceChildren();
+        dayButtons.clear();
 
         byMonth.forEach(function (group) {
           const section = create('section', 'month');
@@ -1098,37 +1107,69 @@
         });
       }
 
-      function buildDay(day, status) {
-        const iso = toISO(day);
+      function dayState(day, status) {
         const crossed = isCrossed(day, status);
         const isToday = status.started && !status.ended && day.getTime() === TODAY.getTime();
         const locked = status.started && day.getTime() <= TODAY.getTime();
-        const early = crossed && !locked;
+        return {
+          crossed: crossed,
+          isToday: isToday,
+          locked: locked,
+          early: crossed && !locked
+        };
+      }
 
-        const button = create('button', 'day');
-        button.type = 'button';
-        button.dataset.iso = iso;
-        button.textContent = String(day.getDate());
-        button.classList.toggle('is-crossed', crossed);
-        button.classList.toggle('is-today', isToday);
-        button.classList.toggle('is-locked', locked);
-        button.classList.toggle('is-early', early);
+      function syncDayButton(button, day, status) {
+        const info = dayState(day, status);
+
+        button.classList.toggle('is-crossed', info.crossed);
+        button.classList.toggle('is-today', info.isToday);
+        button.classList.toggle('is-locked', info.locked);
+        button.classList.toggle('is-early', info.early);
         button.classList.toggle('is-weekend', day.getDay() === 0 || day.getDay() === 6);
-        if (iso === justCrossed) button.classList.add('is-just-crossed');
 
-        button.setAttribute('aria-pressed', crossed ? 'true' : 'false');
-        if (isToday) button.setAttribute('aria-current', 'date');
-        if (locked) button.setAttribute('aria-disabled', 'true');
+        button.setAttribute('aria-pressed', info.crossed ? 'true' : 'false');
+        if (info.isToday) button.setAttribute('aria-current', 'date');
+        else button.removeAttribute('aria-current');
+        if (info.locked) button.setAttribute('aria-disabled', 'true');
+        else button.removeAttribute('aria-disabled');
 
-        let label = formatFull(day) + '. ' + (crossed ? 'Tachado' : 'Sin tachar');
-        if (isToday) label += '. Hoy';
-        if (!locked) {
-          label += crossed ? '. Pulsa para quitar la marca' : '. Pulsa para tacharlo';
+        let label = formatFull(day) + '. ' + (info.crossed ? 'Tachado' : 'Sin tachar');
+        if (info.isToday) label += '. Hoy';
+        if (!info.locked) {
+          label += info.crossed ? '. Pulsa para quitar la marca' : '. Pulsa para tacharlo';
         }
         button.setAttribute('aria-label', label);
+      }
+
+      function restartStrike(button) {
+        button.classList.remove('is-just-crossed');
+        void button.offsetWidth;
+        button.classList.add('is-just-crossed');
+        window.setTimeout(function () {
+          button.classList.remove('is-just-crossed');
+        }, 400);
+      }
+
+      function refreshAllDays() {
+        const status = getStatus();
+        dayButtons.forEach(function (button, iso) {
+          button.classList.remove('is-just-crossed');
+          syncDayButton(button, parseISO(iso), status);
+        });
+        updateHeader(status);
+      }
+
+      function buildDay(day, status) {
+        const button = create('button', 'day');
+        button.type = 'button';
+        button.dataset.iso = toISO(day);
+        button.textContent = String(day.getDate());
+        syncDayButton(button, day, status);
+        dayButtons.set(button.dataset.iso, button);
 
         button.addEventListener('click', function () {
-          handleDayClick(day);
+          handleDayClick(day, button);
         });
 
         return button;
@@ -1138,7 +1179,7 @@
          Interacciones
          ========================================================== */
 
-      function handleDayClick(day) {
+      function handleDayClick(day, button) {
         const status = getStatus();
 
         if (status.started && day.getTime() <= TODAY.getTime()) {
@@ -1151,17 +1192,18 @@
         if (state.crossed.has(iso)) {
           state.crossed.delete(iso);
           saveState();
-          render();
+          button.classList.remove('is-just-crossed');
+          syncDayButton(button, day, status);
+          updateHeader();
           showToast(pickPhrase(PHRASES.deshecho), { icon: '↩️' });
           return;
         }
 
         state.crossed.add(iso);
         saveState();
-        justCrossed = iso;
-        render();
-
-        const crossedCount = countCrossed(getStatus());
+        syncDayButton(button, day, status);
+        restartStrike(button);
+        const crossedCount = updateHeader();
 
         if (crossedCount >= TOTAL) {
           playFinish();
@@ -1203,7 +1245,7 @@
 
         state.crossed.clear();
         saveState();
-        render();
+        refreshAllDays();
         showToast('Marcas borradas. De cero otra vez.', { icon: '🧹' });
       });
 
@@ -1216,10 +1258,12 @@
         if (toISO(now) === toISO(TODAY)) return;
 
         TODAY = now;
-        render();
+        refreshAllDays();
 
         const status = getStatus();
         if (status.started && !status.ended) {
+          const todayButton = dayButtons.get(toISO(TODAY));
+          if (todayButton) restartStrike(todayButton);
           showToast(pickPhrase(PHRASES.nuevoDia), { icon: '🌅' });
         }
       }
