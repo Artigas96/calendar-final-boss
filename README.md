@@ -1,6 +1,6 @@
 # calendar-final-boss
 
-Calendario de cuenta atrás hasta el **3 de diciembre de 2026**. Los días pasados y el día de hoy se tachan solos, los días futuros se pueden tachar por adelantado, y todo se guarda en el navegador. Al tachar suena un pequeño "ding" y aparece una frase motivacional.
+Calendario de cuenta atrás hasta el **2 de diciembre de 2026**. Los días pasados y el día de hoy se tachan solos, los días futuros se pueden tachar por adelantado, y todo se guarda en el navegador. Al tachar suena un pequeño "ding" y aparece una frase motivacional.
 
 Es una sola página, sin dependencias ni build: todo vive en `index.html`.
 
@@ -48,12 +48,12 @@ Al principio del `<script>` principal:
 
 ```js
 const START_ISO = '2026-10-21';
-const END_ISO   = '2026-12-03';
+const END_ISO   = '2026-12-02';
 ```
 
 Formato `YYYY-MM-DD`. La cuenta atrás se calcula siempre contra `END_ISO` usando la fecha real del dispositivo.
 
-> Si cambias el rango de fechas, revisa las claves de `hitos` en el JSON (5, 10, 22, 32 y 40): están pensadas para un calendario de 44 días.
+> Si cambias el rango de fechas, revisa las claves de `hitos` en el JSON (5, 10, 22, 32 y 40): están pensadas para un calendario de 43 días.
 
 ### Frases
 
@@ -135,7 +135,7 @@ En `localStorage`, bajo la clave `finalboss.calendar.v1`:
 
 ## Comprobado
 
-- Calendario de 44 días (21-oct → 3-dic), con 43 días restantes el 21-oct.
+- Calendario de 43 días (21-oct → 2-dic), con 42 días restantes el 21-oct.
 - Hoy tachado automáticamente; días pasados bloqueados.
 - Tachar y destachar un día futuro, con persistencia tras recargar.
 - Frase y toast al tachar; mensaje neutro y silencio al destachar.

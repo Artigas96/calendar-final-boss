@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Calendario de cuenta atrás hasta el 3 de diciembre. Tacha los días que faltan.">
+  <meta name="description" content="Calendario de cuenta atrás hasta el 2 de diciembre. Tacha los días que faltan.">
   <meta name="theme-color" content="#fdf5f4">
-  <title>Cuenta atrás · Hasta el 3 de diciembre</title>
+  <title>Cuenta atrás · Hasta el 2 de diciembre</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%85%3C/text%3E%3C/svg%3E">
   <style>
     :root {
@@ -505,10 +505,10 @@
         <span class="count__unit" id="count-unit">días</span>
       </div>
       <p class="count__sub" id="count-sub">cargando…</p>
-      <div class="progress" id="progress" role="progressbar" aria-label="Días tachados" aria-valuemin="0" aria-valuemax="44" aria-valuenow="0">
+      <div class="progress" id="progress" role="progressbar" aria-label="Días tachados" aria-valuemin="0" aria-valuemax="43" aria-valuenow="0">
         <span class="progress__fill" id="progress-fill"></span>
       </div>
-      <p class="progress__meta" id="progress-meta">0 de 44 días tachados</p>
+      <p class="progress__meta" id="progress-meta">0 de 43 días tachados</p>
     </header>
 
     <p class="warning" id="storage-warning" hidden>
@@ -546,20 +546,20 @@
       "Esto ya no hay quien lo pare.",
       "Cada cruz es un punto para ti.",
       "Hoy también has ganado.",
-      "El calendario va perdiendo.",
+      "El calendario va perdiendo y tu vas ganando.",
       "Un pasito más cerca de casa.",
       "Se nota que le estás cogiendo el truco.",
       "Tacharlo es lo mejor del día.",
       "Mira cómo desaparecen.",
       "La cuenta atrás no miente.",
-      "Un día menos para el 3 de diciembre.",
+      "Un día menos para el 2 de diciembre.",
       "Esto se llama constancia.",
       "Bien. Sin dramas y hacia delante.",
       "Cada día tachado es tuyo.",
       "Ya llevas unos cuantos. Se nota.",
       "Pequeño gesto, gran recuento.",
       "Así, sin prisa pero sin pausa.",
-      "El hospital no sabe con quién está tratando.",
+      "Un dia menos para pasar en ese servicio.",
       "Ya casi hueles el último día.",
       "Un día menos de bata.",
       "Sigue así y esto se acaba solo.",
@@ -571,7 +571,8 @@
       "10": "Diez. Esto empieza a parecer una racha.",
       "22": "Mitad del camino. Ni tan mal, ¿no?",
       "32": "Treinta y dos. Ya se ve el final.",
-      "40": "Cuarenta. Quedan cuatro. Cuatro."
+      "40": "Cuarenta. Quedan tres. Tres.",
+      "42": "Cuarenta y dos. Solo queda uno. Unooooooo.",
     },
     "ultimoDia": [
       "Último día. Lo has conseguido.",
@@ -601,7 +602,7 @@
          ========================================================== */
 
       const START_ISO = '2026-10-21';
-      const END_ISO = '2026-12-03';
+      const END_ISO = '2026-12-02';
       const STORAGE_KEY = 'finalboss.calendar.v1';
       const TOAST_MS = 4500;
 
@@ -764,7 +765,8 @@
           '10': 'Diez. Esto empieza a parecer una racha.',
           '22': 'Mitad del camino. Ni tan mal, ¿no?',
           '32': 'Treinta y dos. Ya se ve el final.',
-          '40': 'Cuarenta. Quedan cuatro. Cuatro.'
+          '40': 'Cuarenta. Quedan tres. Tres.',
+          '42': 'Cuarenta y dos. Solo queda uno. Unooooooo.'
         },
         ultimoDia: ['Último día. Lo has conseguido.'],
         deshecho: ['Deshecho. Sin drama.'],
