@@ -517,7 +517,7 @@
 
     <div class="calendar" id="calendar" aria-label="Calendario del servicio"></div>
 
-    <p class="hint">Toca un día futuro para tacharlo por adelantado. Los días pasados se tachan solos.</p>
+    <p class="hint">Toca hoy o cualquier día futuro para tacharlo. Los días pasados se tachan solos.</p>
 
     <footer class="foot">
       <span>Datos guardados solo en este navegador.</span>
@@ -960,7 +960,6 @@
 
       function isCrossed(day, status) {
         if (status.started && day.getTime() < TODAY.getTime()) return true;
-        if (status.started && day.getTime() === TODAY.getTime() && !status.ended) return true;
         return state.crossed.has(toISO(day));
       }
 
@@ -1112,7 +1111,7 @@
       function dayState(day, status) {
         const crossed = isCrossed(day, status);
         const isToday = status.started && !status.ended && day.getTime() === TODAY.getTime();
-        const locked = status.started && day.getTime() <= TODAY.getTime();
+        const locked = status.started && day.getTime() < TODAY.getTime();
         return {
           crossed: crossed,
           isToday: isToday,
@@ -1184,7 +1183,7 @@
       function handleDayClick(day, button) {
         const status = getStatus();
 
-        if (status.started && day.getTime() <= TODAY.getTime()) {
+        if (status.started && day.getTime() < TODAY.getTime()) {
           showToast('Ese día ya está tachado.', { icon: '✅' });
           return;
         }

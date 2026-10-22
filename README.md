@@ -1,14 +1,14 @@
 # calendar-final-boss
 
-Calendario de cuenta atrás hasta el **2 de diciembre de 2026**. Los días pasados y el día de hoy se tachan solos, los días futuros se pueden tachar por adelantado, y todo se guarda en el navegador. Al tachar suena un pequeño "ding" y aparece una frase motivacional.
+Calendario de cuenta atrás hasta el **2 de diciembre de 2026**. Los días pasados se tachan solos, y el día de hoy y los futuros se pueden tachar tocándolos. Todo se guarda en el navegador. Al tachar suena un pequeño "ding" y aparece una frase motivacional.
 
 Es una sola página, sin dependencias ni build: todo vive en `index.html`.
 
 ## Qué hace
 
 - Cuenta atrás con el número de días que quedan, barra de progreso y total de días tachados.
-- **Días pasados y hoy**: se tachan automáticamente y no se pueden destachar.
-- **Días futuros**: se tachan al tocarlos y se pueden destachar. Las marcas se guardan al instante.
+- **Días pasados**: se tachan automáticamente y no se pueden destachar.
+- **Hoy y días futuros**: se tachan al tocarlos y se pueden destachar. Las marcas se guardan al instante.
 - **Sonido sintetizado** con Web Audio (sin archivos): un ding al tachar, un arpegio en los hitos y un pequeño fanfarre al completar el calendario. El botón 🔔/🔇 silencia y recuerda la preferencia.
 - **Frases motivacionales** en un toast, sin repetir la misma dos veces seguidas.
 - **Hitos** al llegar a 5, 10, 22, 32 y 40 días tachados, con sonido y mensaje especial.
@@ -136,8 +136,8 @@ En `localStorage`, bajo la clave `finalboss.calendar.v1`:
 ## Comprobado
 
 - Calendario de 43 días (21-oct → 2-dic), con 42 días restantes el 21-oct.
-- Hoy tachado automáticamente; días pasados bloqueados.
-- Tachar y destachar un día futuro, con persistencia tras recargar.
+- Días pasados bloqueados y tachados; hoy y días futuros tachables (hoy empieza sin tachar).
+- Tachar y destachar hoy y un día futuro, con persistencia tras recargar.
 - Frase y toast al tachar; mensaje neutro y silencio al destachar.
 - Hito a los 5 días con su frase y estilo propio.
 - Silenciar/activar sonido y que la preferencia se guarde.
